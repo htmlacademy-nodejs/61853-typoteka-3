@@ -15,10 +15,22 @@ app.use(express.json());
 app.get(`/posts`, async (req, res) => {
   try {
     const fileContent = await fs.readFile(FILENAME);
+
+    if (!fileContent.length) {
+      res.json([]);
+      return;
+    }
+
     const mocks = JSON.parse(fileContent);
     res.json(mocks);
   } catch (error) {
-    res.json([]);
+    // NOTE: handle no file error
+    if (error.code === `ENOENT`) {
+      res.json([]);
+      return;
+    }
+
+    res.status(HttpCode.INTERNAL_SERVER_ERROR).send(error);
   }
 });
 
